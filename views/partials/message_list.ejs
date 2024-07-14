@@ -1,0 +1,15 @@
+<% if (typeof messages !== "undefined" && messages.length > 0) { %>
+
+<ul>
+  <% for(const message of messages) { %>
+
+  <li><a href="<%= message.url %>"><%= message.title %></a></li>
+
+  <% } %>
+</ul>
+
+<% } else { %>
+
+<p>No Messages yet</p>
+
+<% } %>
