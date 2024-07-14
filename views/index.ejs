@@ -1,19 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-  <%- include("./partials/header.ejs") %>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
   <body>
-    <h1>Welcome!</h1>
-    <%- include("./partials/sign_in.ejs") %>
-    <button><a href="/signup">Sign Up</a></button>
-
-    <% if (messages && messages.length > 0) { %>
-    <ul>
-      <% messages.forEach((message) => { %>
-      <li><a href="<%= message.url %>"><%= message.title %></a></li>
-      <% }) %>
-    </ul>
-    <% } else { %>
-    <p>No messages yet!</p>
-    <% } %> <%- include("./partials/footer.ejs") %>
+    <p>Hi there!</p>
   </body>
 </html>

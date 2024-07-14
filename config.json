@@ -1,7 +1,0 @@
-{
-  "MONGO_DB_URI": "mongodb+srv://libraryuser:EHBF5Ii6Qkgj1AVd@cluster0.fi9zqkl.mongodb.net/member_only?retryWrites=true&w=majority&appName=Cluster0",
-  "CLOUD_NAME": "dxk7v3ppp",
-  "CLOUDINARY_API_KEY": "443749227163283",
-  "CLOUDINARY_SECRET_KEY": "MhHLUVGMyghKPUS8oVdJK-w09Io",
-  "SECRET": "catz"
-}
