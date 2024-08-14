@@ -6,7 +6,7 @@
 
     <p>Are you sure you want to delete <%= message.title %></p>
     <form method="POST">
-      <input type="hidden" name="delete_message" value="<%= message._id %>" />
+      <input type="hidden" name="delete_message" value="<%= message.id %>" />
       <button>Delete</button>
     </form>
 

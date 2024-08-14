@@ -130,4 +130,4 @@ dist
 .pnp.*
 
 # config for environmental variables
-config.js
+config.json

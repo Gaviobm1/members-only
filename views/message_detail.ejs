@@ -10,7 +10,7 @@
     <p><%= message.text %></p>
     <p>Created: <%= date %></p>
     <% if (typeof user !== "undefined" && user.is_admin) { %>
-    <a href="/message/<%= message._id %>/delete">Delete Message</a>
+    <a href="/message/<%= message.id %>/delete">Delete Message</a>
     <% } %> <%- include("./partials/footer.ejs") %>
   </body>
 </html>

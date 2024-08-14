@@ -1,29 +1,14 @@
 const express = require("express");
 const session = require("express-session");
 const path = require("path");
-const mongoose = require("mongoose");
-const nconf = require("nconf");
-const sessionStore = require("./utilities/mongoSession");
 const passport = require("passport");
 const localStrategy = require("./utilities/passportStrategy");
-const User = require("./models/userSchema");
-
-nconf.argv().env();
+const pgSession = require("connect-pg-simple")(session);
+const pool = require("./db/pool");
+const dbUser = require("./db/userQuery");
+require("dotenv").config();
 
 const app = express();
-
-const mongoDb = nconf.get("MONGO_DB_URI");
-
-mongoose
-  .connect(mongoDb)
-  .then((result) =>
-    app.listen(8080, () => {
-      console.log("Listening on 8080");
-    })
-  )
-  .catch((err) => {
-    console.log(err);
-  });
 
 const siteRouter = require("./routes/siteRouter");
 
@@ -34,10 +19,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
   session({
-    secret: nconf.get("SECRET"),
+    store: new pgSession({
+      pool,
+      tableName: process.env.SESSION_TABLE,
+      pruneSessionInterval: 60 * 60,
+    }),
+    secret: process.env.SECRET_KEY,
     resave: false,
     saveUninitialized: false,
-    store: sessionStore,
     cookie: { maxAge: 1000 * 60 * 60 },
   })
 );
@@ -50,7 +39,8 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser((id, done) => {
-  User.findById(id)
+  dbUser
+    .findUserById(id)
     .then((user) => {
       done(null, user);
     })
@@ -60,3 +50,6 @@ passport.deserializeUser((id, done) => {
 });
 
 app.use(siteRouter);
+app.listen(8080, () => {
+  console.log("Listening on 8080");
+});

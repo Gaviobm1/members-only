@@ -1,12 +1,10 @@
 const { body, validationResult } = require("express-validator");
 const asyncHandler = require("express-async-handler");
 const passport = require("passport");
-const LocalStrategy = require("passport-local");
-const MongoStore = require("connect-mongo");
 const bcrypt = require("bcryptjs");
 const isEqual = require("../utilities/customValidation");
-const User = require("../models/userSchema");
-const Message = require("../models/messageSchema");
+const dbUser = require("../db/userQuery");
+const dbMessages = require("../db/messageQuery");
 
 const signup_get = asyncHandler(async (req, res, next) => {
   res.render("signup_form", {
@@ -50,15 +48,16 @@ const signup_post = [
   asyncHandler(async (req, res, next) => {
     bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
       const errors = validationResult(req);
-      const admin = req.body._is_admin !== "undefined";
-      const user = new User({
+      const admin = req.body.is_admin !== undefined;
+      const user = {
         first_name: req.body.first_name,
         last_name: req.body.last_name,
         username: req.body.username,
         password: hashedPassword,
-        is_admin: admin,
+        admin,
         membership_status: admin,
-      });
+      };
+      console.log(user);
       if (!errors.isEmpty()) {
         res.render("signup_form", {
           title: "Sign Up",
@@ -67,21 +66,19 @@ const signup_post = [
         });
         return;
       }
-      const checkUser = await User.findOne({
-        username: req.body.username,
-      }).exec();
-      if (checkUser) {
-        res.render("signup_form", {
+      const checkUser = await dbUser.findUserByUsername(user.username);
+      console.log(checkUser);
+      if (checkUser.length) {
+        return res.render("signup_form", {
           title: "Sign Up",
           user,
           errors: [{ msg: "Username taken. Choose another" }],
         });
-        return;
       }
-      await user.save();
+      const newUser = await dbUser.addUser(user);
       res.render("user_home", {
         title: "Profile",
-        user,
+        user: newUser,
       });
     });
   }),
@@ -94,15 +91,18 @@ const signin_get = (req, res, next) => {
 };
 
 const signin_post = [
-  passport.authenticate("local", { failureRedirect: "/signin" }),
-  (req, res, next) => {
+  passport.authenticate("local", {
+    failureRedirect: "/signin",
+  }),
+  (req, res) => {
     res.redirect(req.user.url);
   },
 ];
 
 const user_get = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.params.id).populate("messages").exec();
-
+  const user = await dbUser.findUserById(req.params.id);
+  const messages = await dbMessages.findUserMessages(req.params.id);
+  user.messages = messages;
   if (user === null) {
     res.redirect("/");
   }
@@ -136,13 +136,13 @@ const membership_get = (req, res, next) => {
 
 const membership_post = asyncHandler(async (req, res, next) => {
   if (req.body.secret === "secret") {
-    const user = await User.findById(req.user.id).exec();
+    const user = await dbUser.findUserById(req.user.id);
     if (user === null) {
       res.redirect(req.user.id);
       return;
     }
-    user.membership_status = true;
-    await User.findByIdAndUpdate(req.user.id, user, {});
+    user.membership_status = !user.membership_status;
+    await dbUser.changeMembership(req.user.id, user);
     res.redirect(user.url);
   } else {
     res.render("membership_form", {

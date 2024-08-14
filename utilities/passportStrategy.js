@@ -1,9 +1,10 @@
 const LocalStrategy = require("passport-local");
 const bcrypt = require("bcryptjs");
-const User = require("../models/userSchema");
+const dbUser = require("../db/userQuery");
 
 const verifyCallback = (username, password, done) => {
-  User.findOne({ username })
+  dbUser
+    .findUserByUsername(username)
     .then((user) => {
       if (!user) {
         return done(null, false, { message: "Username not found" });
